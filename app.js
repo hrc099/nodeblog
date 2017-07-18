@@ -16,6 +16,8 @@ var users = require('./routes/users');
 
 var app = express();
 
+app.locals.moment = require('moment');
+
 // Handle file uploads & multipart data
 var upload = multer({ dest: './public/images/uploads' });
 
