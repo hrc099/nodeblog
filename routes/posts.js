@@ -25,29 +25,33 @@ router.post('/add', upload.single('mainimage'), function(req, res, next) {
     var author = req.body.author;
     var date = new Date();
 
-    if(req.file.mainimage) {
-        var mainImageOriginalName = req.file.mainimage.originalname;
-        var mainImageName = req.file.mainimage.name;
-        var mainImageMime = req.file.mainimage.mimetype;
-        var mainImagePath = req.file.mainimage.path;
-        var mainImageExt = req.file.mainimage.extension;
-        var mainImageSize = req.file.mainimage.size;
+    if(req.file) {
+        var mainImageOriginalName = req.file.originalname;
+        var mainImageName = req.file.filename;
+        var mainImageMime = req.file.mimetype;
+        var mainImagePath = req.file.path;
+        var mainImageExt = req.file.extension;
+        var mainImageSize = req.file.size;
     } else {
         var mainImageName = 'noimage.jpg';
     }
 
     // Form validation
     req.checkBody('title', 'Title is required').notEmpty();
-    req.checkBody('body', 'Body field is required');
+    req.checkBody('body', 'Body field is required').notEmpty();
 
     // Check errors
     var errors = req.validationErrors();
 
     if(errors) {
-        res.render('addpost', {
-            'errors': errors,
-            'title': title,
-            'body': body
+        var categories = db.get('categories');
+        categories.find({}, {}, function(err, categories) {
+            res.render('addpost',{
+                'errors': errors,
+                'title': title,
+                'body': body,
+                'categories': categories
+            });
         });
     } else {
         var posts = db.get('posts');

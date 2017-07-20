@@ -3,6 +3,17 @@ var router = express.Router();
 var mongo = require('mongodb');
 var db = require('monk')('localhost/nodeblog');
 
+router.get('/show/:category', function(req, res, next) {
+    var db = req.db;
+    var posts = db.get('posts');
+    posts.find({category: req.params.category}, {}, function(err, posts) {
+        res.render('index', {
+            'title': req.params.category,
+            'posts': posts
+        });
+    });
+});
+
 // Homepage blog posts
 router.get('/add', function(req, res, next) {
     res.render('addcategory', {
@@ -11,9 +22,9 @@ router.get('/add', function(req, res, next) {
 });
 
 router.post('/add', function(req, res, next) {
-    var db = req.db;
     // Get form values
     var title = req.body.title;
+    console.log(req.body.title);
 
     // Form validation
     req.checkBody('title', 'Title is required').notEmpty();
@@ -27,7 +38,8 @@ router.post('/add', function(req, res, next) {
             'title': title
         });
     } else {
-        var posts = db.get('categories');
+        var db = req.db;
+        var categories = db.get('categories');
         // Submit to DB
         categories.insert({
             'title': title

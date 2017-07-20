@@ -2,10 +2,10 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var expressValidator = require('express-validator');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
+var expressValidator = require('express-validator');
 var mongo = require('mongodb');
 var db = require('monk')('localhost/nodeblog');
 var multer = require('multer');
@@ -19,6 +19,11 @@ var app = express();
 
 app.locals.moment = require('moment');
 
+app.locals.truncateText = function(text, length) {
+  var truncatedText = text.substring(0, length) + '...';
+  return truncatedText;
+}
+
 // Handle file uploads & multipart data
 var upload = multer({ dest: './public/images/uploads' });
 
@@ -31,15 +36,6 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-
-// Express session
-app.use(session({
-  secret: 'secret',
-  saveUninitialized: true,
-  resave: true
-}));
-
 // Express validator
 app.use(expressValidator({
   errorFormatter: function(param, msg, value) {
@@ -56,6 +52,14 @@ app.use(expressValidator({
       value: value
     };
   }
+}));
+app.use(cookieParser());
+
+// Express session
+app.use(session({
+  secret: 'secret',
+  saveUninitialized: true,
+  resave: true
 }));
 
 app.use(express.static(path.join(__dirname, 'public')));
