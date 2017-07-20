@@ -5,9 +5,18 @@ var monk = require('monk')('localhost/nodeblog');
 var multer = require('multer');
 var upload = multer({ dest: './public/images/uploads' });
 
+router.get('/show/:id', function(req, res, next) {
+    console.log(req.params);
+    var posts = monk.get('posts');
+    posts.findOne({ _id: req.params.id }, function(err, post) {
+        res.render('show',{
+            'post': post
+        });
+    });
+});
+
 router.get('/add', function(req, res, next) {
-    var db = req.db;
-    var categories = db.get('categories');
+    var categories = monk.get('categories');
     categories.find({}, {}, function(err, categories) {
         res.render('addpost',{
             'title': 'Add post',
@@ -19,7 +28,7 @@ router.get('/add', function(req, res, next) {
 router.post('/add', upload.single('mainimage'), function(req, res, next) {
     var db = req.db;
     // Get form values
-    var title = req.body.title;
+    var name = req.body.title;
     var category = req.body.category;
     var body = req.body.body;
     var author = req.body.author;
@@ -72,6 +81,53 @@ router.post('/add', upload.single('mainimage'), function(req, res, next) {
                 res.redirect('/');
             }
         });
+    }
+});
+
+router.post('/addcomment', function(req, res, next) {
+    // Get form values
+    var name = req.body.name;
+    var email = req.body.email;
+    var body = req.body.body;
+    var postId = req.body.postid;
+    var commentDate = new Date();
+
+    // Form validation
+    req.checkBody('name', 'Name is required').notEmpty();
+    req.checkBody('email', 'Email is required').notEmpty();
+    req.checkBody('email', 'Email is not correct').isEmail();
+    req.checkBody('body', 'Body field is required').notEmpty();
+
+    // Check errors
+    var errors = req.validationErrors();
+
+    if(errors) {
+        var posts = monk.get('posts');
+        posts.findOne({ _id: postId }, function(err, post) {
+            res.render('show',{
+                'errors': errors,
+                'post': post,
+            });
+        });
+    } else {
+        var comments = {'name': name, 'email': email, 'body': body, 'commentdate': commentDate};
+        // Submit to DB
+        monk.get('posts').update(
+            {
+                '_id': postId
+            },
+            { $push: {
+                'comments': comments
+            }}, function (err, doc) {
+                if(err) {
+                    throw err;
+                } else {
+                    req.flash('success', 'Comment added');
+                    res.location('/posts/show/'+postId);
+                    res.redirect('/posts/show/'+postId);
+                }
+            }
+        );
     }
 });
 
