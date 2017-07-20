@@ -13,15 +13,20 @@ block content
         .form-group
             label Category
             select.form-control(name='category')
+                each category, i in categories
+                    option(value='#{category.title}') #{category.title}
         .form-group
             label Body
             textarea.form-control(name='body', id='body')
         .form-group
             label Main image
-            input.form-control(name='mainimage', type='file')
+            input.form-control(name='mainimage', type='file', accept='image/*')
         .form-group
             label Author
             select.form-control(name='author')
                 option(value='Drle') Hrvoje Husnjak
                 option(value='John Doe') John Doe
         input.btn.btn-default(name='submit', type='submit', value='Save')
+        script(src='/ckeditor/ckeditor.js')
+        script
+            | CKEDITOR.replace('body');
